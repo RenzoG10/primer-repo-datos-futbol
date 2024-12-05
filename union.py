@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import time
 import random
 import os
-from main import *
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
@@ -68,7 +67,7 @@ for grupo in grupos:
         
         detminutos = detectar_minutos(equipo1)
         if detminutos is None:
-            minutos ="TC"
+            minutos ="Partido Finalizado: "
         else:
             minutos = str(detminutos)
 
@@ -80,6 +79,17 @@ for grupo in grupos:
     ligas_y_partidos.append((titulo_liga, partidos_de_liga))
 
 
+for liga, partidos in ligas_y_partidos:
+        
+        if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo":
+            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+            for minutos, equipo1, resultado, equipo2 in partidos:
+                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+        elif paisbuscadoarreglado in liga:
+            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+            for minutos, equipo1, resultado, equipo2 in partidos:
+                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
 # las credenciales para que se asocie la account, utilizo el .env porque por lo que lei es mas seguro a la hora de subir a repositorios
 # y eso, cosa de no regalarse viste.
@@ -96,7 +106,17 @@ access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 
 client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
-mensaje_aleatorio = ligas_y_partidos
+nombre_liga = ligas_y_partidos[0]
+
+def generar_mensaje(ligas_y_partidos):
+    for liga, partidos in ligas_y_partidos:
+        
+        if paisbuscadoarreglado in liga:
+            mensaje = (f"\nLiga: {liga}\n")
+            for minutos, equipo1, resultado, equipo2 in partidos:
+                mensaje += (f"🕒 {minutos}\n{equipo1} {resultado} {equipo2}\n\n")
+        
+    return mensaje
 
 # la funcion del twitteo 
 
@@ -104,7 +124,7 @@ def tweet():
 
     # para que no se repita el tweet (only testeo)
 
-    texto = random.choice(mensaje_aleatorio)
+    texto = generar_mensaje(ligas_y_partidos)
 
     # uso del try y except para que aunque haya un error siga corriendo el programa
 
@@ -120,7 +140,7 @@ def tweet():
 
 # el timeset, es de prueba nomas, la idea es que el timeet este dentro de una funcion
 
-horario.every(20).seconds.do(tweet) 
+horario.every(10).seconds.do(tweet) 
 
 # el while para que se mantenga activo
 
