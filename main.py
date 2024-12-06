@@ -48,6 +48,8 @@ def buscar_partidos():
 
     equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
 
+    uservivo = input("Ingrese VIVO o NO JUGADOS o FINALIZADOS: ")
+
     # Iniciar Selenium y BeautifulSoup
     driver = webdriver.Chrome(options=option)
     url = f"https://www.fotmob.com/es?date={fecha}"
@@ -118,13 +120,43 @@ def buscar_partidos():
     print(f"\nFecha: {dia}/{mes}/{anio}")
     if not partido_encontrado:
         print(f"No juega {equipo_buscado} en esta Fecha")
-        
+    
+    envivo = None # esta al pedo
+    parttermi = False # esta al pedo
+    partidosenvivo = []
+    partidosnoenvivo = []
+    partidosfinalizados = []
+
     for liga, partidos in ligas_y_partidos:
         if partidos:  # Mostrar solo ligas con partidos
             if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
-                print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+                #print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
                 for minutos, equipo1, resultado, equipo2 in partidos:
-                    print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-    
+                    #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+                    if minutos != "":
+                        if minutos != "Partido Finalizado" and minutos != "Finalizo en tanda de Penales" and minutos != "Finalizado en Tiempo Extra":
+                            envivo = True # esta al pedo
+                            partidosenvivo.append((minutos, equipo1, resultado, equipo2))
+                        elif minutos == "Partido Finalizado":
+                            parttermi = True # esta al pedo
+                            partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
+                    else:
+                        envivo = False # esta al pedo
+                        partidosnoenvivo.append((minutos, equipo1, resultado, equipo2))
+                        
+    if uservivo == "VIVO":
+        print("Partidos en vivo:")
+        for minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+    elif uservivo == "NO JUGADOS":
+        print("Partidos sin jugar todavia:")
+        for minutos, equipo1, resultado, equipo2 in partidosnoenvivo:
+            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+    elif uservivo == "FINALIZADOS":
+        print("Partidos finalizados: ")
+        for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+
 # Ejecutar la función principal
 buscar_partidos()
