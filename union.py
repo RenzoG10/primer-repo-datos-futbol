@@ -141,7 +141,7 @@ for liga, partidos in ligas_y_partidos:
             for minutos, equipo1, resultado, equipo2 in partidos:
                 print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
-def generar_mensaje(ligas_y_partidos):
+"""def generar_mensaje(ligas_y_partidos):
     for liga, partidos in ligas_y_partidos:
         
         if paisbuscadoarreglado in liga:
@@ -149,6 +149,18 @@ def generar_mensaje(ligas_y_partidos):
             for minutos, equipo1, resultado, equipo2 in partidos:
                 mensaje += (f"🕒 {minutos}\n{equipo1} {resultado} {equipo2}\n\n")
         
+    return mensaje""" #esto para mi hay que sacarlo
+
+def generar_mensaje2(ligas_y_partidos):
+    mensaje = ""
+    if not partido_encontrado:
+        mensaje = (f"No juega {equipo_buscado} en esta Fecha")
+    for liga, partidos in ligas_y_partidos:
+        if partidos:  # Mostrar solo ligas con partidos
+            if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
+                mensaje = (f"\nLiga: {liga}\n")
+                for minutos, equipo1, resultado, equipo2 in partidos:
+                    mensaje += (f"🕒{minutos}\n{equipo1} {resultado} {equipo2}\n") #Hay que hacer mas condicionales para que printee bien si queremos todos los equipos
     return mensaje
 
 # la funcion del twitteo 
@@ -157,7 +169,7 @@ def tweet():
 
     # para que no se repita el tweet (only testeo)
 
-    texto = generar_mensaje(ligas_y_partidos)
+    texto = generar_mensaje2(ligas_y_partidos)
 
     # uso del try y except para que aunque haya un error siga corriendo el programa
 
