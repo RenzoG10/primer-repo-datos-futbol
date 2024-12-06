@@ -2,11 +2,11 @@ import tweepy as tw
 import schedule as horario
 from dotenv import load_dotenv
 import time
-
 import os
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
+
 # Configuración de Selenium
 option = webdriver.ChromeOptions()
 option.add_argument("--headless")
@@ -26,9 +26,8 @@ def detectar_minutos(texto):
 
 # Función para detectar si hay TC, Pen, AET o ET al final del nombre del equipo
 def detectar_estado(texto):
-    """
-    Detecta si el nombre del equipo tiene TC, Pen, AET o ET al final.
-    """
+
+   # Detecta si el nombre del equipo tiene TC, Pen, AET o ET al final.
     if texto.endswith("TC"):
         return "Partido Finalizado"
     elif texto.endswith("Pen"):
@@ -39,7 +38,7 @@ def detectar_estado(texto):
         return "Entre Tiempo"
     return None
 
-# Solicitar fecha y país
+# Solicitar fecha, país y equipo
 print("\nIngrese fecha de partidos a buscar")
 dia = input("Ingrese día: ")
 mes = input("Ingrese mes: ")
@@ -115,8 +114,7 @@ for grupo in grupos:
             
     ligas_y_partidos.append((titulo_liga, partidos_de_liga))
 
-# las credenciales para que se asocie la account, utilizo el .env porque por lo que lei es mas seguro a la hora de subir a repositorios
-# y eso, cosa de no regalarse viste.
+# las credenciales para que se asocie la account, utilizo el .env porque es mas seguro a la hora de subir a repositorios
 
 load_dotenv()
 
