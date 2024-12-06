@@ -2,42 +2,69 @@ import tweepy as tw
 import schedule as horario
 from dotenv import load_dotenv
 import time
-import random
+
 import os
 
 from selenium import webdriver
 from bs4 import BeautifulSoup
-
+# Configuración de Selenium
 option = webdriver.ChromeOptions()
 option.add_argument("--headless")
 
+# Función para detectar los minutos al final del texto (minutos)
+def detectar_minutos(texto):
+    """
+    Extrae los números al final del texto, si los hay, y los retorna.
+    """
+    numeros = ""
+    for car in reversed(texto):  # Recorre el texto desde el final
+        if car.isdigit():  # Si es un número, lo agrega a los minutos
+            numeros = car + numeros
+        else:
+            break  # Sale del bucle si no es un número
+    return numeros
+
+# Función para detectar si hay TC, Pen, AET o ET al final del nombre del equipo
+def detectar_estado(texto):
+    """
+    Detecta si el nombre del equipo tiene TC, Pen, AET o ET al final.
+    """
+    if texto.endswith("TC"):
+        return "Partido Finalizado"
+    elif texto.endswith("Pen"):
+        return "Tanda de penales"
+    elif texto.endswith("AET"):
+        return "Partido Finalizado"
+    elif texto.endswith("ET"):
+        return "Entre Tiempo"
+    return None
+
+# Solicitar fecha y país
 print("\nIngrese fecha de partidos a buscar")
-dia = input("Ingrese dia: ")
+dia = input("Ingrese día: ")
 mes = input("Ingrese mes: ")
 anio = input("Ingrese año: ")
-fecha = str(anio)+str(mes).zfill(2)+str(dia).zfill(2)
+fecha = str(anio) + str(mes).zfill(2) + str(dia).zfill(2)
 
-paisbuscado = str(input("\nIngrese el pais de la liga a buscar: "))
+paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
 paisbuscadoarreglado = paisbuscado.capitalize()
 
+equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
+
+# Iniciar Selenium y BeautifulSoup
 driver = webdriver.Chrome(options=option)
-url = "https://www.fotmob.com/es?date="+fecha
+url = f"https://www.fotmob.com/es?date={fecha}"
 driver.get(url)
 
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 
 grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
-
 ligas_y_partidos = []
+partido_encontrado = False
 
-def detectar_minutos(texto):
-    for car in texto: 
-        if car.isalpha():
-            texto.rstrip(car)
-
+# Extraer partidos
 for grupo in grupos:
-
     titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle ei2uj7w0")
     titulo_liga = titulo_div.text.strip() if titulo_div else "Liga no encontrada"
 
@@ -46,50 +73,47 @@ for grupo in grupos:
 
     for partido in partidos:
         equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
-        div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0") 
+        div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
         equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
 
         resultados = None
         if div2 is not None:
             resultados = div2.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
-        
-        if resultados is None:
 
+        if resultados is None:
             div4 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
             if div4 is not None:
                 resultados = div4.find("span", class_="css-ky5j63-LSMatchStatusTime e5pc0pz3")
             if resultados is None:
                 resultados = "Hora no encontrada"
-        
+
         equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
         resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
         equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
-        
-        detminutos = detectar_minutos(equipo1)
-        if detminutos is None:
-            minutos ="Partido Finalizado: "
-        else:
-            minutos = str(detminutos)
 
-        equipo1 = equipo1.rstrip('TC')
-        equipo2 = equipo2.rstrip('TC')
+        # Detectar minutos al final del nombre
+        minutos = detectar_minutos(equipo1)
+        estado = detectar_estado(equipo1)  # Detectar si es un TC, Pen, AET o ET
 
-        partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+        # Eliminar los minutos y estado del nombre del equipo
+        if minutos:
+            equipo1 = equipo1.rstrip(minutos)
+        if estado:
+            equipo1 = equipo1.rstrip(estado)
 
+        # Agregar los minutos y estado al lado de los minutos
+        if estado:
+            minutos = f"{minutos}{estado}"
+
+        # Agregar el partido a la lista si coincide con el equipo buscado o si se selecciona "Todos"
+        if equipo_buscado.lower() in equipo1.lower() or equipo_buscado.lower() in equipo2.lower():
+            partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+            partido_encontrado = True
+        elif equipo_buscado.lower() == "todos" or equipo_buscado.lower() == "todo":
+            partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+            partido_encontrado = True
+            
     ligas_y_partidos.append((titulo_liga, partidos_de_liga))
-
-
-for liga, partidos in ligas_y_partidos:
-        
-        if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo":
-            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-
-        elif paisbuscadoarreglado in liga:
-            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
 # las credenciales para que se asocie la account, utilizo el .env porque por lo que lei es mas seguro a la hora de subir a repositorios
 # y eso, cosa de no regalarse viste.
@@ -107,6 +131,17 @@ access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
 nombre_liga = ligas_y_partidos[0]
+
+# Mostrar resultados
+print(f"\nFecha: {dia}/{mes}/{anio}")
+if not partido_encontrado:
+    print(f"No juega {equipo_buscado} en esta Fecha")
+for liga, partidos in ligas_y_partidos:
+    if partidos:  # Mostrar solo ligas con partidos
+        if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
+            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+            for minutos, equipo1, resultado, equipo2 in partidos:
+                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
 def generar_mensaje(ligas_y_partidos):
     for liga, partidos in ligas_y_partidos:
@@ -140,7 +175,7 @@ def tweet():
 
 # el timeset, es de prueba nomas, la idea es que el timeet este dentro de una funcion
 
-horario.every(10).seconds.do(tweet) 
+horario.every(45).seconds.do(tweet) 
 
 # el while para que se mantenga activo
 

@@ -24,14 +24,15 @@ def detectar_estado(texto):
     Detecta si el nombre del equipo tiene TC, Pen, AET o ET al final.
     """
     if texto.endswith("TC"):
-        return "TC"
+        return "Partido Finalizado"
     elif texto.endswith("Pen"):
-        return "Pen"
+        return "Finalizo en tanda de Penales"
     elif texto.endswith("AET"):
-        return "AET"
+        return "Finalizado en Tiempo Extra"
     elif texto.endswith("ET"):
-        return "ET"
+        return "Entre Tiempo"
     return None
+
 
 # Función principal para buscar partidos
 def buscar_partidos():
@@ -45,6 +46,8 @@ def buscar_partidos():
     paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
     paisbuscadoarreglado = paisbuscado.capitalize()
 
+    equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
+
     # Iniciar Selenium y BeautifulSoup
     driver = webdriver.Chrome(options=option)
     url = f"https://www.fotmob.com/es?date={fecha}"
@@ -55,7 +58,8 @@ def buscar_partidos():
 
     grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
     ligas_y_partidos = []
-
+    
+    partido_encontrado = False
     # Extraer partidos
     for grupo in grupos:
         titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle ei2uj7w0")
@@ -98,22 +102,29 @@ def buscar_partidos():
             if estado:
                 minutos = f"{minutos}{estado}"
 
-            # Agregar el partido a la lista
-            partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
-
+            # Agregar el partido a la lista si coincide con el equipo buscado o si se selecciona "Todos"
+            if equipo_buscado.lower() in equipo1.lower() or equipo_buscado.lower() in equipo2.lower():
+                partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+                partido_encontrado = True
+            elif equipo_buscado.lower() == "todos" or equipo_buscado == "todo":
+                partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+                partido_encontrado = True
+            
+                
+                              
         ligas_y_partidos.append((titulo_liga, partidos_de_liga))
 
     # Mostrar resultados
     print(f"\nFecha: {dia}/{mes}/{anio}")
+    if not partido_encontrado:
+        print(f"No juega {equipo_buscado} en esta Fecha")
+        
     for liga, partidos in ligas_y_partidos:
-        if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo":
-            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-        elif paisbuscadoarreglado in liga:
-            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-
+        if partidos:  # Mostrar solo ligas con partidos
+            if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
+                print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+                for minutos, equipo1, resultado, equipo2 in partidos:
+                    print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+    
 # Ejecutar la función principal
 buscar_partidos()
