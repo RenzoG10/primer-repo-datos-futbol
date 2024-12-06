@@ -49,7 +49,7 @@ paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
 paisbuscadoarreglado = paisbuscado.capitalize()
 
 equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
-
+uservivo = input("Ingrese VIVO o NO JUGADOS o FINALIZADOS: ")
 # Iniciar Selenium y BeautifulSoup
 driver = webdriver.Chrome(options=option)
 url = f"https://www.fotmob.com/es?date={fecha}"
@@ -131,25 +131,11 @@ client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token
 nombre_liga = ligas_y_partidos[0]
 
 # Mostrar resultados
-print(f"\nFecha: {dia}/{mes}/{anio}")
-if not partido_encontrado:
-    print(f"No juega {equipo_buscado} en esta Fecha")
-for liga, partidos in ligas_y_partidos:
-    if partidos:  # Mostrar solo ligas con partidos
-        if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
-            print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-
-"""def generar_mensaje(ligas_y_partidos):
-    for liga, partidos in ligas_y_partidos:
-        
-        if paisbuscadoarreglado in liga:
-            mensaje = (f"\nLiga: {liga}\n")
-            for minutos, equipo1, resultado, equipo2 in partidos:
-                mensaje += (f"🕒 {minutos}\n{equipo1} {resultado} {equipo2}\n\n")
-        
-    return mensaje""" #esto para mi hay que sacarlo
+envivo = None # esta al pedo
+parttermi = False # esta al pedo
+partidosenvivo = []
+partidosnoenvivo = []
+partidosfinalizados = []
 
 def generar_mensaje2(ligas_y_partidos):
     mensaje = ""
@@ -158,9 +144,33 @@ def generar_mensaje2(ligas_y_partidos):
     for liga, partidos in ligas_y_partidos:
         if partidos:  # Mostrar solo ligas con partidos
             if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
-                mensaje = (f"\nLiga: {liga}\n")
+                #mensaje = (f"\nLiga: {liga}\n")
                 for minutos, equipo1, resultado, equipo2 in partidos:
-                    mensaje += (f"🕒{minutos}\n{equipo1} {resultado} {equipo2}\n") #Hay que hacer mas condicionales para que printee bien si queremos todos los equipos
+                    #mensaje += (f"Tiempo en juego 🕒{minutos}\n{equipo1} {resultado} {equipo2}\n") #Hay que hacer mas condicionales para que printee bien si queremos todos los equipos
+                    if minutos != "":
+                        if minutos != "Partido Finalizado" and minutos != "Finalizo en tanda de Penales" and minutos != "Finalizado en Tiempo Extra":
+                            envivo = True # esta al pedo
+                            partidosenvivo.append((minutos, equipo1, resultado, equipo2))
+                        elif minutos == "Partido Finalizado":
+                            parttermi = True # esta al pedo
+                            partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
+                        else:
+                            envivo = False # esta al pedo
+                            partidosnoenvivo.append((minutos, equipo1, resultado, equipo2))
+       
+    if uservivo == "VIVO":
+        mensaje = ("Partidos en vivo:")
+        for minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
+    elif uservivo == "NO JUGADOS":
+        mensaje = ("Partidos sin jugar todavia:")
+        for minutos, equipo1, resultado, equipo2 in partidosnoenvivo:
+            mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
+    elif uservivo == "FINALIZADOS":
+        mensaje = ("Partidos finalizados: ")
+        for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+            mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
+        
     return mensaje
 
 # la funcion del twitteo 
@@ -185,7 +195,7 @@ def tweet():
 
 # el timeset, es de prueba nomas, la idea es que el timeet este dentro de una funcion
 
-horario.every(45).seconds.do(tweet) 
+horario.every(20).seconds.do(tweet) 
 
 # el while para que se mantenga activo
 
