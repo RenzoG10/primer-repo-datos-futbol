@@ -1,5 +1,6 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
+import time 
 
 # Configuración de Selenium
 option = webdriver.ChromeOptions()
@@ -32,7 +33,6 @@ def detectar_estado(texto):
     elif texto.endswith("ET"):
         return "Entre Tiempo"
     return None
-
 
 # Función principal para buscar partidos
 def buscar_partidos():
@@ -121,8 +121,6 @@ def buscar_partidos():
     if not partido_encontrado:
         print(f"No juega {equipo_buscado} en esta Fecha")
     
-    envivo = None # esta al pedo
-    parttermi = False # esta al pedo
     partidosenvivo = []
     partidosnoenvivo = []
     partidosfinalizados = []
@@ -135,13 +133,10 @@ def buscar_partidos():
                     #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
                     if minutos != "":
                         if minutos != "Partido Finalizado" and minutos != "Finalizo en tanda de Penales" and minutos != "Finalizado en Tiempo Extra":
-                            envivo = True # esta al pedo
                             partidosenvivo.append((minutos, equipo1, resultado, equipo2))
                         elif minutos == "Partido Finalizado":
-                            parttermi = True # esta al pedo
                             partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
                     else:
-                        envivo = False # esta al pedo
                         partidosnoenvivo.append((minutos, equipo1, resultado, equipo2))
                         
     if uservivo == "VIVO":
@@ -156,6 +151,70 @@ def buscar_partidos():
         print("Partidos finalizados: ")
         for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+
+    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
+
+    # Almacén de estados previos
+    estado_previos = {}
+
+    print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
+
+    try:
+        while True:
+            html = driver.page_source
+            soup = BeautifulSoup(html, 'html.parser')
+
+            grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
+            estado_actual = {}
+
+            for grupo in grupos:
+                partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
+
+                for partido in partidos:
+                    equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
+                    div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
+                    equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
+
+                    resultados = None
+                    if div2:
+                        resultados = div2.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
+                    if not resultados:
+                        resultados = div2.find("span", class_="css-ky5j63-LSMatchStatusTime e5pc0pz3") if div2 else None
+
+                    equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
+                    equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
+                    resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
+
+                    minutos = detectar_minutos(equipo1)
+
+                    # Eliminar los minutos y estado del nombre del equipo
+                    if minutos:
+                        equipo1 = equipo1.rstrip(minutos)
+
+                    if equipo1 and equipo2 and resultado:
+                        key = f"{equipo1} vs {equipo2}"
+                        estado_actual[key] = resultado
+                                                                       #and resultado == "0 - 0" and minutos == "1":
+                        #if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
+                        #    print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
+
+                        if key not in estado_previos and resultado == "0 - 0" and minutos == "1":
+                            print(f"{minutos} Comenzo el partido {key}! Marcador: {resultado}")
+                        
+                        #elif key in estado_previos and estado_previos[key] != resultado:
+                        #    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+                        elif key in estado_previos and estado_previos[key] != resultado and estado_previos[key] != "0 - 0":
+                            print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+
+            estado_previos = estado_actual
+            time.sleep(30)
+    except KeyboardInterrupt:
+        print("\nMonitoreo detenido por el usuario.")
+    finally:
+        driver.quit()
 
 
 # Ejecutar la función principal
