@@ -195,21 +195,12 @@ def buscar_partidos():
                         if equipo1 and equipo2 and resultado:
                             key = f"{equipo1} vs {equipo2}"
                             estado_actual[key] = resultado
-                                                                        #and resultado == "0 - 0" and minutos == "1":
-                            #if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
-                            #    print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
+                                                                        
+                            if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
+                                print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
 
-                             # Detectar el comienzo del partido
-                            if key not in estado_previos and resultado == "0 - 0" and minutos == "1":
-                                print(f"{minutos} Comenzó el partido {key}!: Marcador: {resultado}")
                             
-                            
-                            #elif key in estado_previos and estado_previos[key] != resultado:
-                            #    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-
-                            # Detectar cambios en el resultado (goles), asegurando que no sea el marcador inicial
-
-                            elif key in estado_previos and estado_previos[key] != resultado and not (estado_previos[key] == "0 - 0" and resultado == "0 - 0"):
+                            elif key in estado_previos and estado_previos[key] != resultado:
                                 print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
 
 
