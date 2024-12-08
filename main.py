@@ -32,6 +32,13 @@ def detectar_estado(texto):
         return "Finalizado en Tiempo Extra"
     elif texto.endswith("ET"):
         return "Entre Tiempo"
+    elif texto.endswith("Ap"):
+        return "Aplazado"
+    elif texto.endswith("Ab"):
+        return "Suspendido"
+    elif texto.endswith("Ca"):
+        return "Cancelado"
+
     return None
 
 # Función principal para buscar partidos
@@ -122,7 +129,7 @@ def buscar_partidos():
         print(f"No juega {equipo_buscado} en esta Fecha")
     
     partidosenvivo = []
-    partidosnoenvivo = []
+    partidosnojugados = []
     partidosfinalizados = []
 
     for liga, partidos in ligas_y_partidos:
@@ -132,89 +139,97 @@ def buscar_partidos():
                 for minutos, equipo1, resultado, equipo2 in partidos:
                     #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
                     if minutos != "":
-                        if minutos != "Partido Finalizado" and minutos != "Finalizo en tanda de Penales" and minutos != "Finalizado en Tiempo Extra":
+                        if minutos != "Partido Finalizado" and minutos != "Finalizo en tanda de Penales" and minutos != "Finalizado en Tiempo Extra" and minutos != "Aplazado" and minutos != "Cancelado" and minutos != "Suspendido":
                             partidosenvivo.append((minutos, equipo1, resultado, equipo2))
-                        elif minutos == "Partido Finalizado":
+                        elif minutos == "Partido Finalizado" or minutos == "Suspendido" or minutos == "Finalizo en tanda de Penales" or minutos == "Finalizado en Tiempo Extra":
                             partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
+                        elif minutos == "Cancelado" or minutos == "Aplazado":
+                            partidosnojugados.append((minutos, equipo1, resultado, equipo2))
                     else:
-                        partidosnoenvivo.append((minutos, equipo1, resultado, equipo2))
+                        partidosnojugados.append((minutos, equipo1, resultado, equipo2))
                         
     if uservivo == "VIVO":
         print("Partidos en vivo:")
         for minutos, equipo1, resultado, equipo2 in partidosenvivo:
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+    
+    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
+
+    # Almacén de estados previos
+        estado_previos = {}
+
+        print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
+
+        try:
+            while True:
+                html = driver.page_source
+                soup = BeautifulSoup(html, 'html.parser')
+
+                grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
+                estado_actual = {}
+
+                for grupo in grupos:
+                    partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
+
+                    for partido in partidos:
+                        equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
+                        div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
+                        equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
+
+                        resultados = None
+                        if div2:
+                            resultados = div2.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
+                        if not resultados:
+                            resultados = div2.find("span", class_="css-ky5j63-LSMatchStatusTime e5pc0pz3") if div2 else None
+
+                        equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
+                        equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
+                        resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
+
+                        minutos = detectar_minutos(equipo1)
+
+                        # Eliminar los minutos y estado del nombre del equipo
+                        if minutos:
+                            equipo1 = equipo1.rstrip(minutos)
+
+                        if equipo1 and equipo2 and resultado:
+                            key = f"{equipo1} vs {equipo2}"
+                            estado_actual[key] = resultado
+                                                                        #and resultado == "0 - 0" and minutos == "1":
+                            #if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
+                            #    print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
+
+                             # Detectar el comienzo del partido
+                            if key not in estado_previos and resultado == "0 - 0" and minutos == "1":
+                                print(f"{minutos} Comenzó el partido {key}!: Marcador: {resultado}")
+                            
+                            
+                            #elif key in estado_previos and estado_previos[key] != resultado:
+                            #    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+                            # Detectar cambios en el resultado (goles), asegurando que no sea el marcador inicial
+
+                            elif key in estado_previos and estado_previos[key] != resultado and not (estado_previos[key] == "0 - 0" and resultado == "0 - 0"):
+                                print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+
+                estado_previos = estado_actual
+                time.sleep(30)
+        except KeyboardInterrupt:
+            print("\nMonitoreo detenido por el usuario.")
+        finally:
+            driver.quit()
+
     elif uservivo == "NO JUGADOS":
         print("Partidos sin jugar todavia:")
-        for minutos, equipo1, resultado, equipo2 in partidosnoenvivo:
+        for minutos, equipo1, resultado, equipo2 in partidosnojugados:
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
     elif uservivo == "FINALIZADOS":
         print("Partidos finalizados: ")
         for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
-
-    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
-
-    # Almacén de estados previos
-    estado_previos = {}
-
-    print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
-
-    try:
-        while True:
-            html = driver.page_source
-            soup = BeautifulSoup(html, 'html.parser')
-
-            grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
-            estado_actual = {}
-
-            for grupo in grupos:
-                partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
-
-                for partido in partidos:
-                    equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
-                    div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
-                    equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
-
-                    resultados = None
-                    if div2:
-                        resultados = div2.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
-                    if not resultados:
-                        resultados = div2.find("span", class_="css-ky5j63-LSMatchStatusTime e5pc0pz3") if div2 else None
-
-                    equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
-                    equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
-                    resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
-
-                    minutos = detectar_minutos(equipo1)
-
-                    # Eliminar los minutos y estado del nombre del equipo
-                    if minutos:
-                        equipo1 = equipo1.rstrip(minutos)
-
-                    if equipo1 and equipo2 and resultado:
-                        key = f"{equipo1} vs {equipo2}"
-                        estado_actual[key] = resultado
-                                                                       #and resultado == "0 - 0" and minutos == "1":
-                        #if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
-                        #    print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
-
-                        if key not in estado_previos and resultado == "0 - 0" and minutos == "1":
-                            print(f"{minutos} Comenzo el partido {key}! Marcador: {resultado}")
-                        
-                        #elif key in estado_previos and estado_previos[key] != resultado:
-                        #    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-
-                        elif key in estado_previos and estado_previos[key] != resultado and estado_previos[key] != "0 - 0":
-                            print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-
-
-            estado_previos = estado_actual
-            time.sleep(30)
-    except KeyboardInterrupt:
-        print("\nMonitoreo detenido por el usuario.")
-    finally:
-        driver.quit()
 
 
 # Ejecutar la función principal
