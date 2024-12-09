@@ -202,7 +202,7 @@ def buscar_partidos():
                             
                             elif key in estado_previos and estado_previos[key] != resultado:
                                 print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-
+                                
 
                 estado_previos = estado_actual
                 time.sleep(30)
