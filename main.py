@@ -213,7 +213,7 @@ def buscar_partidos():
                             if key in estado_previos and estado_previos[key] == "0 - 0" and (minutos == "1" or minutos == "0"):
                                 print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
                             
-                            elif key in estado_previos and estado_previos[key] != resultado:
+                            elif key in estado_previos and estado_previos[key] != resultado and (minutos != "1" or minutos != "0"):
                                 print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
                                  
 
