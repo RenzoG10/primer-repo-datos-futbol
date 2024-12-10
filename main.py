@@ -6,6 +6,34 @@ import time
 option = webdriver.ChromeOptions()
 option.add_argument("--headless")
 
+def selenium(fecha):
+    driver = webdriver.Chrome(options=option)
+    url = f"https://www.fotmob.com/es?date={fecha}"
+    driver.get(url)
+
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+
+    grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
+
+    return driver, url, html, soup, grupos
+
+def inputs():
+    print("\nIngrese fecha de partidos a buscar")
+    dia = input("Ingrese día: ")
+    mes = input("Ingrese mes: ")
+    anio = input("Ingrese año: ")
+    fecha = str(anio) + str(mes).zfill(2) + str(dia).zfill(2)
+
+    paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
+    paisbuscadoarreglado = paisbuscado.capitalize()
+
+    equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
+
+    uservivo = input("\nIngrese VIVO o NO JUGADOS o FINALIZADOS: ")
+
+    return dia,mes,anio, fecha, paisbuscadoarreglado, equipo_buscado, uservivo
+
 # Función para detectar los minutos al final del texto (minutos)
 def detectar_minutos(texto):
     """
@@ -17,6 +45,7 @@ def detectar_minutos(texto):
             numeros = car + numeros
         else:
             break  # Sale del bucle si no es un número
+
     return numeros
 
 # Función para detectar si hay TC, Pen, AET o ET al final del nombre del equipo
@@ -50,36 +79,29 @@ def limpiar_nombre_equipo(nombre, etiquetas):
     for etiqueta in etiquetas:
         if nombre.endswith(etiqueta):
             nombre = nombre[: -len(etiqueta)].strip()  # Elimina la etiqueta y cualquier espacio adicional
+
     return nombre
 
-# Función principal para buscar partidos
-def buscar_partidos():
-    # Solicitar fecha y país
-    print("\nIngrese fecha de partidos a buscar")
-    dia = input("Ingrese día: ")
-    mes = input("Ingrese mes: ")
-    anio = input("Ingrese año: ")
-    fecha = str(anio) + str(mes).zfill(2) + str(dia).zfill(2)
-
-    paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
-    paisbuscadoarreglado = paisbuscado.capitalize()
-
-    equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
-
-    uservivo = input("\nIngrese VIVO o NO JUGADOS o FINALIZADOS: ")
-
-    # Iniciar Selenium y BeautifulSoup
-    driver = webdriver.Chrome(options=option)
-    url = f"https://www.fotmob.com/es?date={fecha}"
-    driver.get(url)
-
-    html = driver.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-
-    grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
-    ligas_y_partidos = []
+def filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, minutos, resultado):
     
     partido_encontrado = False
+    partidos_de_liga = []
+
+    if equipo_buscado.lower() in equipo1.lower() or equipo_buscado.lower() in equipo2.lower():
+        partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+        partido_encontrado = True
+    elif equipo_buscado.lower() == "todos" or equipo_buscado == "todo":
+        partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
+        partido_encontrado = True
+
+    return  partido_encontrado, partidos_de_liga
+
+def buscar_partido(grupos, equipo_buscado):
+
+    ligas_y_partidos = []
+
+    partido_encontrado = False
+
     # Extraer partidos
     for grupo in grupos:
         titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle ei2uj7w0")
@@ -87,6 +109,7 @@ def buscar_partidos():
 
         partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
         partidos_de_liga = []
+
 
         for partido in partidos:
             equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
@@ -109,7 +132,7 @@ def buscar_partidos():
             equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
             resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
             equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
-            
+
             estado = detectar_estado(equipo1)  # Detectar si es un TC, Pen, AET o ET
 
             if estado is None:
@@ -125,20 +148,14 @@ def buscar_partidos():
                 equipo2 = limpiar_nombre_equipo(equipo2, etiquetas_estado)
 
             # Agregar el partido a la lista si coincide con el equipo buscado o si se selecciona "Todos"
-            if equipo_buscado.lower() in equipo1.lower() or equipo_buscado.lower() in equipo2.lower():
-                partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
-                partido_encontrado = True
-            elif equipo_buscado.lower() == "todos" or equipo_buscado == "todo":
-                partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
-                partido_encontrado = True
+            partido_encontrado, partidos_de_liga = filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, minutos, resultado)
             
         ligas_y_partidos.append((titulo_liga, partidos_de_liga))
-
-    # Mostrar resultados
-    print(f"\nFecha: {dia}/{mes}/{anio}")
-    if not partido_encontrado:
-        print(f"No juega {equipo_buscado} en esta Fecha")
     
+    return titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga
+
+def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado):
+
     partidosenvivo = []
     partidosnojugados = []
     partidosfinalizados = []
@@ -158,82 +175,76 @@ def buscar_partidos():
                             partidosnojugados.append((minutos, equipo1, resultado, equipo2))
                     else:
                         partidosnojugados.append((minutos, equipo1, resultado, equipo2))
+
+    return partidosenvivo, partidosnojugados, partidosfinalizados
+
+def goles_comienzo(fecha, equipo_buscado):
+    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
+
+    # Almacén de estados previos
+    estado_previos = {}
+
+    print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
+
+    try:
+        while True:
+
+            driver, url, html, soup, grupos = selenium(fecha)
+
+            estado_actual = {}
+
+            titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga = buscar_partido(grupos, equipo_buscado)
+
+            if equipo1 and equipo2 and resultado:
+                key = f"{equipo1} vs {equipo2}"
+                estado_actual[key] = (resultado, minutos)
+
+                if key in estado_previos:
+                    resultado_anterior, minutos_anteriores = estado_previos[key]
+
+                    if minutos_anteriores == "" and minutos != "":
+                        print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+
+                    # Detectar goles
+                    if resultado_anterior != resultado:
+                        print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+                elif minutos == "1" or minutos == "0":
+                        print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+
+            estado_previos = estado_actual
+            time.sleep(30)
+
+    except KeyboardInterrupt:
+        print("\nMonitoreo detenido por el usuario.")
+    finally:
+        driver.quit()
+
+
+# Función principal para buscar partidos
+def main():
+
+    # Solicitar fecha y país
+    dia,mes,anio, fecha, paisbuscadoarreglado, equipo_buscado, uservivo = inputs()
+
+    # Iniciar Selenium y BeautifulSoup
+    driver, url, html, soup, grupos = selenium(fecha)
+
+    titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga = buscar_partido(grupos, equipo_buscado)
+
+    # Mostrar resultados
+    print(f"\nFecha: {dia}/{mes}/{anio}")
+    if not partido_encontrado:
+        print(f"No juega {equipo_buscado} en esta Fecha")
+
+    partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
                         
     if uservivo == "VIVO":
         print("Partidos en vivo:")
         for minutos, equipo1, resultado, equipo2 in partidosenvivo:
             print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
     
-    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
-
-    # Almacén de estados previos
-        estado_previos = {}
-
-        print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
-
-        try:
-            while True:
-                html = driver.page_source
-                soup = BeautifulSoup(html, 'html.parser')
-
-                grupos = soup.find_all('div', class_="css-1lleae-CardCSS e1mlfzv61")
-                estado_actual = {}
-
-                for grupo in grupos:
-                    partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
-
-                    for partido in partidos:
-                        equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
-                        div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
-                        equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
-
-                        resultados = None
-                        if div2:
-                            resultados = div2.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
-                        if not resultados:
-                            resultados = div2.find("span", class_="css-ky5j63-LSMatchStatusTime e5pc0pz3") if div2 else None
-
-                        equipo1 = equipos1_div1.text.strip() if equipos1_div1 else "Equipo no encontrado"
-                        equipo2 = equipos2_div3.text.strip() if equipos2_div3 else "Equipo no encontrado"
-                        resultado = resultados.text.strip() if hasattr(resultados, 'text') else resultados
-
-                        minutos = detectar_minutos(equipo1)
-
-                        # Eliminar los minutos y estado del nombre del equipo
-                        if minutos:
-                            equipo1 = equipo1.rstrip(minutos)
-
-                        if equipo1 and equipo2 and resultado:
-                            key = f"{equipo1} vs {equipo2}"
-                            estado_actual[key] = (resultado, minutos)
-
-                            if key in estado_previos:
-                                resultado_anterior, minutos_anteriores = estado_previos[key]
-
-                                if minutos_anteriores == "" and minutos != "":
-                                    print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
-
-                                # Detectar goles
-                                if resultado_anterior != resultado:
-                                    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-
-                            elif minutos == "1" or minutos == "0":
-                                    print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
-
-                            
-                            '''if key in estado_previos and (estado_previos[key] == "0 - 0" or estado_previos[key] == "") and (minutos == "1" or minutos == "0"):
-                                print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
-                            
-                            elif key in estado_previos and estado_previos[key] != resultado:
-                                print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")'''
-
-
-                estado_previos = estado_actual
-                time.sleep(30)
-        except KeyboardInterrupt:
-            print("\nMonitoreo detenido por el usuario.")
-        finally:
-            driver.quit()
+        goles_comienzo(fecha, equipo_buscado)
 
     elif uservivo == "NO JUGADOS":
         print("Partidos sin jugar todavia:")
@@ -245,7 +256,5 @@ def buscar_partidos():
         for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
-
-
 # Ejecutar la función principal
-buscar_partidos()
+main()
