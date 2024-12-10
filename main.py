@@ -2,11 +2,12 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 import time 
 
-# Configuración de Selenium
-option = webdriver.ChromeOptions()
-option.add_argument("--headless")
-
 def selenium(fecha):
+
+    # Configuración de Selenium
+    option = webdriver.ChromeOptions()
+    option.add_argument("--headless")
+
     driver = webdriver.Chrome(options=option)
     url = f"https://www.fotmob.com/es?date={fecha}"
     driver.get(url)
@@ -70,8 +71,6 @@ def detectar_estado(texto):
 
     return None
 
-etiquetas_estado = ["TC", "Pen", "AET", "ET", "Ap", "Ab", "Ca"]
-
 def limpiar_nombre_equipo(nombre, etiquetas):
     """
     Limpia el nombre del equipo eliminando etiquetas específicas al final.
@@ -97,6 +96,8 @@ def filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, mi
     return  partido_encontrado, partidos_de_liga
 
 def buscar_partido(grupos, equipo_buscado):
+
+    etiquetas_estado = ["TC", "Pen", "AET", "ET", "Ap", "Ab", "Ca"]
 
     ligas_y_partidos = []
 
