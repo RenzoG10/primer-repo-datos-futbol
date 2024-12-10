@@ -205,17 +205,28 @@ def buscar_partidos():
 
                         if equipo1 and equipo2 and resultado:
                             key = f"{equipo1} vs {equipo2}"
-                            estado_actual[key] = resultado
-                                                                        
-                            '''if key in estado_previos and estado_previos[key] == "0 - 0" and minutos == "1":
-                                print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")'''
+                            estado_actual[key] = (resultado, minutos)
+
+                            if key in estado_previos:
+                                resultado_anterior, minutos_anteriores = estado_previos[key]
+
+                                if minutos_anteriores == "" and minutos != "":
+                                    print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+
+                                # Detectar goles
+                                if resultado_anterior != resultado:
+                                    print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+
+                            elif minutos == "1" or minutos == "0":
+                                    print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+
                             
-                            if key in estado_previos and estado_previos[key] == "0 - 0" and (minutos == "1" or minutos == "0"):
+                            '''if key in estado_previos and (estado_previos[key] == "0 - 0" or estado_previos[key] == "") and (minutos == "1" or minutos == "0"):
                                 print(f"{minutos} Comenzo el partido {key}!: Marcador: {resultado}")
                             
-                            elif key in estado_previos and estado_previos[key] != resultado and (minutos != "1" or minutos != "0"):
-                                print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
-                                 
+                            elif key in estado_previos and estado_previos[key] != resultado:
+                                print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")'''
+
 
                 estado_previos = estado_actual
                 time.sleep(30)
