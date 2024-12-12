@@ -179,7 +179,7 @@ def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoar
 
     return partidosenvivo, partidosnojugados, partidosfinalizados
 
-def goles_comienzo(fecha, equipo_buscado):
+def goles_comienzo(equipo1, equipo2, resultado, minutos, driver):
     # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
 
     # Almacén de estados previos
@@ -190,11 +190,7 @@ def goles_comienzo(fecha, equipo_buscado):
     try:
         while True:
 
-            driver, url, html, soup, grupos = selenium(fecha)
-
             estado_actual = {}
-
-            titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga = buscar_partido(grupos, equipo_buscado)
 
             if equipo1 and equipo2 and resultado:
                 key = f"{equipo1} vs {equipo2}"
