@@ -18,12 +18,12 @@ def main():
         print(f"No juega {equipo_buscado} en esta Fecha")
 
     partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
-                        
+
     if uservivo == "VIVO":
         print("Partidos en vivo:")
         for minutos, equipo1, resultado, equipo2 in partidosenvivo:
             print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-    
+
         goles_comienzo(equipo1, equipo2, resultado, minutos, driver)
 
     elif uservivo == "NO JUGADOS":
