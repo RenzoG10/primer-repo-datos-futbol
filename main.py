@@ -24,7 +24,7 @@ def main():
         for minutos, equipo1, resultado, equipo2 in partidosenvivo:
             print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
-        goles_comienzo(equipo1, equipo2, resultado, minutos, driver)
+        goles_comienzo(driver)
 
     elif uservivo == "NO JUGADOS":
         print("Partidos sin jugar todavia:")

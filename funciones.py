@@ -179,9 +179,7 @@ def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoar
 
     return partidosenvivo, partidosnojugados, partidosfinalizados
 
-def goles_comienzo(equipo1, equipo2, resultado, minutos, driver):
-    # DETECCION DE GOLES Y DE COMIENZOS DE PARTIDOS
-
+def goles_comienzo(driver):
     # Almacén de estados previos
     estado_previos = {}
 
@@ -189,26 +187,50 @@ def goles_comienzo(equipo1, equipo2, resultado, minutos, driver):
 
     try:
         while True:
-
             estado_actual = {}
 
-            if equipo1 and equipo2 and resultado:
-                key = f"{equipo1} vs {equipo2}"
-                estado_actual[key] = (resultado, minutos)
+            # Aquí deberías volver a obtener la página y analizar los datos dinámicamente
+            html = driver.page_source
+            soup = BeautifulSoup(html, 'html.parser')
 
-                if key in estado_previos:
-                    resultado_anterior, minutos_anteriores = estado_previos[key]
+            # Extraer los datos de los partidos
+            partidos = soup.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
 
-                    if minutos_anteriores == "" and minutos != "":
-                        print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+            for partido in partidos:
+                equipos1_div = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
+                equipos2_div = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
+                resultados_div = partido.find("div", class_="css-1wgtcp0-LSMatchScoreAndRedCardsContainer e5pc0pz6")
+                minutos_div = partido.find("span", class_="css-doevad-StatusDotCSS e1yf8uo31")
+
+                equipo1 = equipos1_div.text.strip() if equipos1_div else "Equipo no encontrado"
+                equipo2 = equipos2_div.text.strip() if equipos2_div else "Equipo no encontrado"
+                resultado = resultados_div.text.strip() if resultados_div else "0 - 0"
+                minutos = minutos_div.text.strip() if minutos_div else ""
+
+                # Asegúrate de limpiar minutos de los nombres de los equipos
+                equipo1 = equipo1.replace(minutos, "").strip()
+                equipo2 = equipo2.replace(minutos, "").strip()
+
+                # Verificar si el partido ya estaba en estado_previos
+                if (equipo1, equipo2) in estado_previos:
+                    resultado_anterior, minutos_anterior = estado_previos[(equipo1, equipo2)]
 
                     # Detectar goles
                     if resultado_anterior != resultado:
-                        print(f"{minutos} GOL en el partido {key}! Nuevo resultado: {resultado}")
+                        print(f"{minutos} GOL en el partido {equipo1} vs {equipo2}! Nuevo resultado: {resultado}")
 
-                elif minutos == "1" or minutos == "0":
-                        print(f"{minutos} Comenzó el partido {key} con marcador: {resultado}")
+                    # Detectar inicio del partido
+                    if minutos_anterior == "" and minutos != "":
+                        print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+                else:
+                    # Detectar nuevos partidos agregados al monitoreo
+                    if minutos != "":
+                        print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
 
+                # Actualizar estado actual
+                estado_actual[(equipo1, equipo2)] = (resultado, minutos)
+
+            # Actualizar el estado previo para la próxima iteración
             estado_previos = estado_actual
             time.sleep(30)
 
