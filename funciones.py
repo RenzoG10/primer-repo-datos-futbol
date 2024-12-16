@@ -224,7 +224,7 @@ def goles_comienzo(driver):
                         print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
                 else:
                     # Detectar nuevos partidos agregados al monitoreo
-                    if minutos != "":
+                    if minutos != "" and estado_previos != {}:
                         print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
 
                 # Actualizar estado actual
