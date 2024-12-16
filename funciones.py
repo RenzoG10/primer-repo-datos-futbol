@@ -222,6 +222,16 @@ def goles_comienzo(driver):
                     # Detectar inicio del partido
                     if minutos_anterior == "" and minutos != "":
                         print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+                    
+                    if minutos_anterior == "Entre Tiempo" and minutos != minutos_anterior:
+                        print(f"{minutos} Comenzó el segundo tiempo {equipo1} vs {equipo2} con marcador: {resultado}")
+
+                    if minutos_anterior != "" and minutos == "Entre Tiempo":
+                        print(f"{minutos} Entre Tiempo en el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+
+                    if minutos_anterior != "" and minutos in ["Partido Finalizado", "Finalizado en Pen.", "Finalizado en T.E."]:
+                        print(f"{minutos} Finalizó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+
                 else:
                     # Detectar nuevos partidos agregados al monitoreo
                     if minutos != "" and estado_previos != {}:
