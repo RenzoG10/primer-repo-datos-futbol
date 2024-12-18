@@ -223,11 +223,18 @@ def goles_comienzo(driver):
                     if minutos_anterior == "" and minutos != "":
                         print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
                     
+                    elif minutos_anterior != "Pen" and minutos == "Pen":
+                        print(f"Tanda de penales en el partido {equipo1} vs {equipo2}, finalizaron con marcador: {resultado}")
+                    
                     elif minutos_anterior == "ET" and minutos != minutos_anterior:
                         print(f"{minutos} Comenzó el segundo tiempo {equipo1} vs {equipo2} con marcador: {resultado}")
 
                     elif minutos_anterior != "ET" and minutos == "ET":
                         print(f"Entre Tiempo en el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+                    
+                    elif minutos_anterior != "" and (minutos == "" or minutos in ["TC", "AET", "Pen"]):
+                        print(f"Finalizó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
+                    
 
                 else:
                     # Detectar nuevos partidos agregados al monitoreo
