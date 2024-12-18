@@ -229,9 +229,6 @@ def goles_comienzo(driver):
                     elif minutos_anterior != "ET" and minutos == "ET":
                         print(f"Entre Tiempo en el partido {equipo1} vs {equipo2} con marcador: {resultado}")
 
-                    elif minutos_anterior != "" and minutos in ["Pen", "TC", "AET"]:
-                        print(f"Finalizó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
-
                 else:
                     # Detectar nuevos partidos agregados al monitoreo
                     if minutos != "" and estado_previos != {}:
