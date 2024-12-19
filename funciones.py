@@ -252,3 +252,21 @@ def goles_comienzo(driver):
         print("\nMonitoreo detenido por el usuario.")
     finally:
         driver.quit()
+
+def partidos(uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver):
+    if uservivo == "VIVO":
+        print("Partidos en vivo:")
+        for minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+        goles_comienzo(driver)
+
+    elif uservivo == "NO JUGADOS":
+        print("Partidos sin jugar todavia:")
+        for minutos, equipo1, resultado, equipo2 in partidosnojugados:
+            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+    elif uservivo == "FINALIZADOS":
+        print("Partidos finalizados: ")
+        for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
