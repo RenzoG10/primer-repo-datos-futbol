@@ -81,6 +81,30 @@ def limpiar_nombre_equipo(nombre, etiquetas):
 
     return nombre
 
+def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado):
+
+    partidosenvivo = []
+    partidosnojugados = []
+    partidosfinalizados = []
+
+    for liga, partidos in ligas_y_partidos:
+        if partidos:  # Mostrar solo ligas con partidos
+            if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
+                #print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
+                for minutos, equipo1, resultado, equipo2 in partidos:
+                    #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+                    if minutos != "":
+                        if minutos != "Partido Finalizado" and minutos != "Finalizo en Pen." and minutos != "Finalizado en T.E." and minutos != "Aplazado" and minutos != "Cancelado" and minutos != "Suspendido":
+                            partidosenvivo.append((minutos, equipo1, resultado, equipo2))
+                        elif minutos == "Partido Finalizado" or minutos == "Suspendido" or minutos == "Finalizo en Pen." or minutos == "Finalizado en T.E.":
+                            partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
+                        elif minutos == "Cancelado" or minutos == "Aplazado":
+                            partidosnojugados.append((minutos, equipo1, resultado, equipo2))
+                    else:
+                        partidosnojugados.append((minutos, equipo1, resultado, equipo2))
+
+    return partidosenvivo, partidosnojugados, partidosfinalizados
+
 def filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, minutos, resultado):
     
     partido_encontrado = False
@@ -154,30 +178,6 @@ def buscar_partido(grupos, equipo_buscado):
         ligas_y_partidos.append((titulo_liga, partidos_de_liga))
     
     return titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga
-
-def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado):
-
-    partidosenvivo = []
-    partidosnojugados = []
-    partidosfinalizados = []
-
-    for liga, partidos in ligas_y_partidos:
-        if partidos:  # Mostrar solo ligas con partidos
-            if paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo" or paisbuscadoarreglado in liga:
-                #print(f"\nLiga: {liga} - Total de partidos: {len(partidos)}\n")
-                for minutos, equipo1, resultado, equipo2 in partidos:
-                    #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
-                    if minutos != "":
-                        if minutos != "Partido Finalizado" and minutos != "Finalizo en Pen." and minutos != "Finalizado en T.E." and minutos != "Aplazado" and minutos != "Cancelado" and minutos != "Suspendido":
-                            partidosenvivo.append((minutos, equipo1, resultado, equipo2))
-                        elif minutos == "Partido Finalizado" or minutos == "Suspendido" or minutos == "Finalizo en Pen." or minutos == "Finalizado en T.E.":
-                            partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
-                        elif minutos == "Cancelado" or minutos == "Aplazado":
-                            partidosnojugados.append((minutos, equipo1, resultado, equipo2))
-                    else:
-                        partidosnojugados.append((minutos, equipo1, resultado, equipo2))
-
-    return partidosenvivo, partidosnojugados, partidosfinalizados
 
 def goles_comienzo(driver):
     # Almacén de estados previos
@@ -256,7 +256,13 @@ def goles_comienzo(driver):
     finally:
         driver.quit()
 
-def partidos(uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver):
+def partidos(dia, mes, anio, partido_encontrado, equipo_buscado, uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver):
+
+    # Mostrar resultados
+    print(f"\nFecha: {dia}/{mes}/{anio}")
+    if not partido_encontrado:
+        print(f"No juega {equipo_buscado} en esta Fecha")
+
     if uservivo == "VIVO":
         print("Partidos en vivo:")
         for minutos, equipo1, resultado, equipo2 in partidosenvivo:
