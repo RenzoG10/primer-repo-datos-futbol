@@ -224,17 +224,13 @@ def goles_comienzo(driver):
                         print(f"{minutos} Comenzó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
                     
                     elif minutos_anterior != "Pen" and minutos == "Pen":
-                        print(f"Tanda de penales en el partido {equipo1} vs {equipo2}, finalizaron con marcador: {resultado}")
+                        print(f"Tanda de penales en el partido {equipo1} vs {equipo2}")
                     
                     elif minutos_anterior == "ET" and minutos != minutos_anterior:
                         print(f"{minutos} Comenzó el segundo tiempo {equipo1} vs {equipo2} con marcador: {resultado}")
 
                     elif minutos_anterior != "ET" and minutos == "ET":
                         print(f"Entre Tiempo en el partido {equipo1} vs {equipo2} con marcador: {resultado}")
-                    
-                    elif minutos_anterior != "" and (minutos == "" or minutos in ["TC", "AET", "Pen"]):
-                        print(f"Finalizó el partido {equipo1} vs {equipo2} con marcador: {resultado}")
-                    
 
                 else:
                     # Detectar nuevos partidos agregados al monitoreo
@@ -243,6 +239,13 @@ def goles_comienzo(driver):
 
                 # Actualizar estado actual
                 estado_actual[(equipo1, equipo2)] = (resultado, minutos)
+
+            # Detectar partidos finalizados (presentes en estado_previos pero no en estado_actual)
+            partidos_finalizados = set(estado_previos.keys()) - set(estado_actual.keys())
+            for equipo1, equipo2 in partidos_finalizados:
+                resultado_final, _ = estado_previos[(equipo1, equipo2)]
+                print(f"Finalizó el partido {equipo1} vs {equipo2} con marcador: {resultado_final}")
+
 
             # Actualizar el estado previo para la próxima iteración
             estado_previos = estado_actual
