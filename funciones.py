@@ -29,11 +29,9 @@ def inputs():
     paisbuscado = str(input("\nIngrese el país de la liga a buscar: "))
     paisbuscadoarreglado = paisbuscado.capitalize()
 
-    equipo_buscado = input("\nIngrese el nombre del equipo a buscar (o escriba 'Todos' o 'Todo' para buscar todo): ").strip()
-
     uservivo = input("\nIngrese VIVO o NO JUGADOS o FINALIZADOS: ")
 
-    return dia,mes,anio, fecha, paisbuscadoarreglado, equipo_buscado, uservivo
+    return dia,mes,anio, fecha, paisbuscadoarreglado, uservivo
 
 # Función para detectar los minutos al final del texto (minutos)
 def detectar_minutos(texto):
@@ -103,29 +101,13 @@ def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoar
                     else:
                         partidosnojugados.append((minutos, equipo1, resultado, equipo2))
 
+
     return partidosenvivo, partidosnojugados, partidosfinalizados
 
-def filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, minutos, resultado):
-    
-    partido_encontrado = False
-    partidos_de_liga = []
-
-    if equipo_buscado.lower() in equipo1.lower() or equipo_buscado.lower() in equipo2.lower():
-        partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
-        partido_encontrado = True
-    elif equipo_buscado.lower() == "todos" or equipo_buscado == "todo":
-        partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
-        partido_encontrado = True
-
-    return  partido_encontrado, partidos_de_liga
-
-def buscar_partido(grupos, equipo_buscado):
-
+def buscar_partido(grupos):
     etiquetas_estado = ["TC", "Pen", "AET", "ET", "Ap", "Ab", "Ca"]
 
     ligas_y_partidos = []
-
-    partido_encontrado = False
 
     # Extraer partidos
     for grupo in grupos:
@@ -135,12 +117,11 @@ def buscar_partido(grupos, equipo_buscado):
         partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
         partidos_de_liga = []
 
-
         for partido in partidos:
             equipos1_div1 = partido.find("div", class_="css-9871a0-StatusAndHomeTeamWrapper e1ek4pst4")
             div2 = partido.find("div", class_="css-k083tz-StatusLSMatchWrapperCSS e5pc0pz0")
             equipos2_div3 = partido.find("div", class_="css-gn249o-AwayTeamAndFollowWrapper e1ek4pst5")
-            minutos11 = equipos1_div1.find("span", class_ = "css-doevad-StatusDotCSS e1yf8uo31")
+            minutos11 = equipos1_div1.find("span", class_="css-doevad-StatusDotCSS e1yf8uo31")
 
             resultados = None
             if div2 is not None:
@@ -172,12 +153,12 @@ def buscar_partido(grupos, equipo_buscado):
                 equipo1 = limpiar_nombre_equipo(equipo1, etiquetas_estado)
                 equipo2 = limpiar_nombre_equipo(equipo2, etiquetas_estado)
 
-            # Agregar el partido a la lista si coincide con el equipo buscado o si se selecciona "Todos"
-            partido_encontrado, partidos_de_liga = filtrado_equipos_liga(equipo_buscado, equipo1, equipo2, partidos_de_liga, minutos, resultado)
+            # Agregar todos los partidos sin condiciones
+            partidos_de_liga.append((minutos, equipo1, resultado, equipo2))
             
         ligas_y_partidos.append((titulo_liga, partidos_de_liga))
-    
-    return titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga
+
+    return ligas_y_partidos
 
 def goles_comienzo(driver):
     # Almacén de estados previos
@@ -256,12 +237,10 @@ def goles_comienzo(driver):
     finally:
         driver.quit()
 
-def partidos(dia, mes, anio, partido_encontrado, equipo_buscado, uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver):
+def partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver):
 
     # Mostrar resultados
     print(f"\nFecha: {dia}/{mes}/{anio}")
-    if not partido_encontrado:
-        print(f"No juega {equipo_buscado} en esta Fecha")
 
     if uservivo == "VIVO":
         print("Partidos en vivo:")
