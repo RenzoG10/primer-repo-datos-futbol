@@ -93,14 +93,13 @@ def filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoar
                     #print(f"{minutos:<10} {equipo1:<30} {resultado:<20} {equipo2:<30}")
                     if minutos != "":
                         if minutos != "Partido Finalizado" and minutos != "Finalizo en Pen." and minutos != "Finalizado en T.E." and minutos != "Aplazado" and minutos != "Cancelado" and minutos != "Suspendido":
-                            partidosenvivo.append((minutos, equipo1, resultado, equipo2))
+                            partidosenvivo.append((liga, minutos, equipo1, resultado, equipo2))
                         elif minutos == "Partido Finalizado" or minutos == "Suspendido" or minutos == "Finalizo en Pen." or minutos == "Finalizado en T.E.":
-                            partidosfinalizados.append((minutos, equipo1, resultado, equipo2))
+                            partidosfinalizados.append((liga, minutos, equipo1, resultado, equipo2))
                         elif minutos == "Cancelado" or minutos == "Aplazado":
-                            partidosnojugados.append((minutos, equipo1, resultado, equipo2))
+                            partidosnojugados.append((liga, minutos, equipo1, resultado, equipo2))
                     else:
-                        partidosnojugados.append((minutos, equipo1, resultado, equipo2))
-
+                        partidosnojugados.append((liga, minutos, equipo1, resultado, equipo2))
 
     return partidosenvivo, partidosnojugados, partidosfinalizados
 
@@ -244,17 +243,20 @@ def partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partid
 
     if uservivo == "VIVO":
         print("Partidos en vivo:")
-        for minutos, equipo1, resultado, equipo2 in partidosenvivo:
+        for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            print(f"\nLiga: {liga}\n")
             print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
         goles_comienzo(driver)
 
     elif uservivo == "NO JUGADOS":
         print("Partidos sin jugar todavia:")
-        for minutos, equipo1, resultado, equipo2 in partidosnojugados:
+        for liga, minutos, equipo1, resultado, equipo2 in partidosnojugados:
+            print(f"\nLiga: {liga}\n")
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
     elif uservivo == "FINALIZADOS":
         print("Partidos finalizados: ")
-        for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+        for liga, minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+            print(f"\nLiga: {liga}\n")
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
