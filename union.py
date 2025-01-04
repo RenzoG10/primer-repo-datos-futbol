@@ -5,11 +5,11 @@ import os
 
 from funciones import *
 
-dia,mes,anio, fecha, paisbuscadoarreglado, equipo_buscado, uservivo = inputs()
+dia,mes,anio, fecha, paisbuscadoarreglado, uservivo = inputs()
 
 driver, url, html, soup, grupos = selenium(fecha)
 
-titulo_liga, minutos, equipo1, resultado, equipo2, partido_encontrado, ligas_y_partidos, partidos_de_liga = buscar_partido(grupos, equipo_buscado)
+ligas_y_partidos = buscar_partido(grupos)
 
 # las credenciales para que se asocie la account, utilizo el .env porque es mas seguro a la hora de subir a repositorios
 
@@ -28,8 +28,6 @@ client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token
 nombre_liga = ligas_y_partidos[0]
 
 # Mostrar resultados
-envivo = None # esta al pedo
-parttermi = False # esta al pedo
 partidosenvivo = []
 partidosnoenvivo = []
 partidosfinalizados = []
@@ -39,15 +37,19 @@ def generar_mensaje2(ligas_y_partidos):
 
     # Mostrar resultados
     #print(f"\nFecha: {dia}/{mes}/{anio}")
-    if not partido_encontrado:
-        mensaje = (f"No juega {equipo_buscado} en esta Fecha")
+    '''if not partido_encontrado:
+        mensaje = (f"No juega {equipo_buscado} en esta Fecha")'''
 
     partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
 
     if uservivo == "VIVO":
-        mensaje = ("Partidos en vivo:")
-        for minutos, equipo1, resultado, equipo2 in partidosenvivo:
-            mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
+        #mensaje = ("Partidos en vivo:")
+        for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            #mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
+            if minutos == "Pen":
+                mensaje = ("HAY PENALES EN:")
+                mensaje += (f"\n {equipo1} {resultado} {equipo2}")
+
 
     elif uservivo == "NO JUGADOS":
         mensaje = ("Partidos sin jugar todavia:")
@@ -77,7 +79,7 @@ def tweet():
         print("Tweet publicado satisfactoriamente")
     except tw.TooManyRequests as e:
         print("Error: Demasiadas requests, pausa tactica de 15 min")
-        time.sleep(15 * 60)  # Pausa de 15 minutos
+        time.sleep(2 * 60)  # Pausa de 15 minutos
 
     except Exception as e:
         print(f"Error al publicar el tweet: {e}")
