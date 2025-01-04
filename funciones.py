@@ -110,7 +110,7 @@ def buscar_partido(grupos):
 
     # Extraer partidos
     for grupo in grupos:
-        titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle ei2uj7w0")
+        titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle effkplk0")
         titulo_liga = titulo_div.text.strip() if titulo_div else "Liga no encontrada"
 
         partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
@@ -244,7 +244,7 @@ def partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partid
     if uservivo == "VIVO":
         print("Partidos en vivo:")
         for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
-            print(f"\nLiga: {liga}\n")
+            #print(f"\nLiga: {liga}\n")
             print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
         goles_comienzo(driver)
@@ -252,11 +252,11 @@ def partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partid
     elif uservivo == "NO JUGADOS":
         print("Partidos sin jugar todavia:")
         for liga, minutos, equipo1, resultado, equipo2 in partidosnojugados:
-            print(f"\nLiga: {liga}\n")
+            #print(f"\nLiga: {liga}\n")
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
 
     elif uservivo == "FINALIZADOS":
         print("Partidos finalizados: ")
         for liga, minutos, equipo1, resultado, equipo2 in partidosfinalizados:
-            print(f"\nLiga: {liga}\n")
+            #print(f"\nLiga: {liga}\n")
             print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
