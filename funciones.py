@@ -163,7 +163,7 @@ def goles_comienzo(driver):
     # Almacén de estados previos
     estado_previos = {}
 
-    print("Monitoreando cambios en los resultados. Presione Ctrl+C para detener.")
+    print("\nMonitoreando cambios en los resultados. Presione Ctrl+C para detener.\n")
 
     try:
         while True:
@@ -243,20 +243,41 @@ def partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partid
 
     if uservivo == "VIVO":
         print("Partidos en vivo:")
+        ligas = {}
         for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
-            #print(f"\nLiga: {liga}\n")
-            print(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+            if liga not in ligas:
+                ligas[liga] = []
+            ligas[liga].append(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+        for liga, lista_partidos in ligas.items():
+            print(f"\nLiga: {liga}\n")
+            for partido in lista_partidos:
+                print(partido)
 
         goles_comienzo(driver)
 
     elif uservivo == "NO JUGADOS":
-        print("Partidos sin jugar todavia:")
+        print("Partidos sin jugar todavía:")
+        ligas = {}
         for liga, minutos, equipo1, resultado, equipo2 in partidosnojugados:
-            #print(f"\nLiga: {liga}\n")
-            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+            if liga not in ligas:
+                ligas[liga] = []
+            ligas[liga].append(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+        for liga, lista_partidos in ligas.items():
+            print(f"\nLiga: {liga}\n")
+            for partido in lista_partidos:
+                print(partido)
 
     elif uservivo == "FINALIZADOS":
-        print("Partidos finalizados: ")
+        print("Partidos finalizados:")
+        ligas = {}
         for liga, minutos, equipo1, resultado, equipo2 in partidosfinalizados:
-            #print(f"\nLiga: {liga}\n")
-            print(f"{minutos:<15} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+            if liga not in ligas:
+                ligas[liga] = []
+            ligas[liga].append(f"{minutos:<20} {equipo1:<30} {resultado:<20} {equipo2:<30}")
+
+        for liga, lista_partidos in ligas.items():
+            print(f"\nLiga: {liga}\n")
+            for partido in lista_partidos:
+                print(partido)
