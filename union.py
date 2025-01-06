@@ -5,11 +5,17 @@ import os
 
 from funciones import *
 
-dia,mes,anio, fecha, paisbuscadoarreglado, uservivo = inputs()
+dia, mes, anio, fecha, paisbuscadoarreglado, uservivo = inputs()
 
+# Iniciar Selenium y BeautifulSoup
 driver, url, html, soup, grupos = selenium(fecha)
 
 ligas_y_partidos = buscar_partido(grupos)
+
+partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
+
+partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver)
+
 
 # las credenciales para que se asocie la account, utilizo el .env porque es mas seguro a la hora de subir a repositorios
 
@@ -24,8 +30,6 @@ access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 # cuerpo
 
 client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
-
-nombre_liga = ligas_y_partidos[0]
 
 # Mostrar resultados
 partidosenvivo = []
@@ -42,7 +46,7 @@ def generar_mensaje2(ligas_y_partidos):
 
     partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
 
-    if uservivo == "VIVO":
+    if uservivo == "PEN":
         #mensaje = ("Partidos en vivo:")
         for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
             #mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
@@ -50,15 +54,19 @@ def generar_mensaje2(ligas_y_partidos):
                 mensaje = ("HAY PENALES EN:")
                 mensaje += (f"\n {equipo1} {resultado} {equipo2}")
 
+    elif uservivo == "VIVO":
+        mensaje = ("Partidos en vivo:")
+        for liga, minutos, equipo1, resultado, equipo2 in partidosenvivo:
+            mensaje += (f"\n{liga}\n{minutos:<5} {equipo1} {resultado} {equipo2}")
 
     elif uservivo == "NO JUGADOS":
         mensaje = ("Partidos sin jugar todavia:")
-        for minutos, equipo1, resultado, equipo2 in partidosnojugados:
+        for liga, minutos, equipo1, resultado, equipo2 in partidosnojugados:
             mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
 
     elif uservivo == "FINALIZADOS":
         mensaje = ("Partidos finalizados: ")
-        for minutos, equipo1, resultado, equipo2 in partidosfinalizados:
+        for liga, minutos, equipo1, resultado, equipo2 in partidosfinalizados:
             mensaje += (f"\n{minutos:<5} {equipo1} {resultado} {equipo2}")
 
     #goles_comienzo(equipo1, equipo2, resultado, minutos, driver)
