@@ -110,8 +110,16 @@ def monitorear_y_twittear(driver):
             
             time.sleep(240)
 
+    except tw.TooManyRequests as e:
+        print("Error: Demasiadas requests, pausa tactica de 15 min")
+        time.sleep(2 * 60)  # Pausa de 15 minutos
+
+    except Exception as e:
+        print(f"Error al publicar el tweet: {e}")
+
     except KeyboardInterrupt:
         print("\nMonitoreo detenido por el usuario.")
+
     finally:
         driver.quit()
 
