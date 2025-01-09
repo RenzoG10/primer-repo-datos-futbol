@@ -68,19 +68,19 @@ def monitorear_y_twittear(driver):
 
                     # Detectar gol
                     if resultado_anterior != resultado:
-                        mensaje = f" ⚽¡GOL! en el partido: {equipo1} vs {equipo2} \nNuevo marcador: {resultado} ({minutos} minutos)"
+                        mensaje = f" ⚽¡GOL! en el partido:\n{equipo1} vs {equipo2}\nNuevo marcador: {resultado} ({minutos} minutos)"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
                     # Detectar inicio del partido
                     if minutos_anterior == "" and minutos != "":
-                        mensaje = f"Comenzó el partido: {equipo1} vs {equipo2} \nMarcador inicial: {resultado}"
+                        mensaje = f"Comenzó el partido:\n{equipo1} vs {equipo2}\nMarcador inicial: {resultado}"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
                     # Detectar entretiempo
                     if minutos_anterior != "ET" and minutos == "ET":
-                        mensaje = f"Entretiempo en {equipo1} vs {equipo2} \nMarcador: {resultado}"
+                        mensaje = f"Entretiempo en el partido:\n{equipo1} vs {equipo2}\nMarcador: {resultado}"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
