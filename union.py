@@ -85,20 +85,20 @@ def monitorear_y_twittear(driver):
                         print(f"Tweet enviado: {mensaje}")
 
                     if minutos_anterior == "ET" and minutos != "ET":
-                        mensaje = f"Comenzo el segundo tiempo en {equipo1} vs {equipo2} \nMarcador: {resultado}"
+                        mensaje = f"Comenzo el segundo tiempo en {equipo1} vs {equipo2}\nMarcador: {resultado}"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
                     # Detectar tanda de penales
                     if minutos_anterior != "Pen" and minutos == "Pen":
-                        mensaje = f"Tanda de penales \n{equipo1} vs {equipo2}"
+                        mensaje = f"Tanda de penales\n{equipo1} vs {equipo2}"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
                 else:
                     # Detectar nuevos partidos agregados
                     if minutos != "":
-                        mensaje = f"Nuevo partido en seguimiento: {equipo1} vs {equipo2} \nMarcador: {resultado} ({minutos} minutos)"
+                        mensaje = f"Nuevo partido en seguimiento: {equipo1} vs {equipo2}\nMarcador: {resultado} ({minutos} minutos)"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
@@ -106,7 +106,7 @@ def monitorear_y_twittear(driver):
             partidos_finalizados = set(estado_previos.keys()) - set(estado_actual.keys())
             for equipo1, equipo2 in partidos_finalizados:
                 resultado_final, _ = estado_previos[(equipo1, equipo2)]
-                mensaje = f"Finalizó el partido: {equipo1} vs {equipo2} \nResultado final: {resultado_final}"
+                mensaje = f"Finalizó el partido: {equipo1} vs {equipo2}\nResultado final: {resultado_final}"
                 client.create_tweet(text=mensaje)
                 print(f"Tweet enviado: {mensaje}")
 
