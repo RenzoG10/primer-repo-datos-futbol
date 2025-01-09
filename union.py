@@ -28,6 +28,8 @@ access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 
 client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
+driver, url, html, soup, grupos = selenium(fecha)
+
 def monitorear_y_twittear(driver):
     estado_previos = {}
     print("\nMonitoreando cambios en los resultados. Presione Ctrl+C para detener.\n")
@@ -66,7 +68,7 @@ def monitorear_y_twittear(driver):
 
                     # Detectar gol
                     if resultado_anterior != resultado:
-                        mensaje = f"¡GOL! {equipo1} vs {equipo2} \nNuevo marcador: {resultado} ({minutos})"
+                        mensaje = f" ⚽¡GOL! en el partido: {equipo1} vs {equipo2} \nNuevo marcador: {resultado} ({minutos} minutos)"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
@@ -82,6 +84,11 @@ def monitorear_y_twittear(driver):
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
+                    if minutos_anterior == "ET" and minutos != "ET":
+                        mensaje = f"Comenzo el segundo tiempo en {equipo1} vs {equipo2} \nMarcador: {resultado}"
+                        client.create_tweet(text=mensaje)
+                        print(f"Tweet enviado: {mensaje}")
+
                     # Detectar tanda de penales
                     if minutos_anterior != "Pen" and minutos == "Pen":
                         mensaje = f"Tanda de penales \n{equipo1} vs {equipo2}"
@@ -91,7 +98,7 @@ def monitorear_y_twittear(driver):
                 else:
                     # Detectar nuevos partidos agregados
                     if minutos != "":
-                        mensaje = f"Nuevo partido en seguimiento: {equipo1} vs {equipo2} \nMarcador: {resultado} ({minutos})"
+                        mensaje = f"Nuevo partido en seguimiento: {equipo1} vs {equipo2} \nMarcador: {resultado} ({minutos} minutos)"
                         client.create_tweet(text=mensaje)
                         print(f"Tweet enviado: {mensaje}")
 
@@ -108,7 +115,7 @@ def monitorear_y_twittear(driver):
 
             # Pausar antes de la próxima iteración
             
-            time.sleep(240)
+            time.sleep(30)
 
     except tw.TooManyRequests as e:
         print("Error: Demasiadas requests, pausa tactica de 15 min")
@@ -122,8 +129,6 @@ def monitorear_y_twittear(driver):
 
     finally:
         driver.quit()
-
-driver, url, html, soup, grupos = selenium(fecha)
 
 # Inicia el monitoreo
 monitorear_y_twittear(driver)
