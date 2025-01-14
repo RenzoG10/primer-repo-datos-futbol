@@ -31,4 +31,4 @@ client = tw.Client(bearer_token, api_key, api_secret, access_token, access_token
 driver, url, html, soup, grupos = selenium(fecha)
 
 # Inicia el monitoreo
-monitorear_y_twittear(driver,client,tw)
+monitorear_y_twittear(driver, client, tw, grupos, paisbuscadoarreglado)
