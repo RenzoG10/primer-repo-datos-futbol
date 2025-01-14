@@ -349,9 +349,7 @@ def monitorear_y_twittear(driver, client, tw):
                         print(f"Tweet enviado: {mensaje}")
 
                 elif minutos != "":
-                        mensaje = f"Nuevo partido en seguimiento: {equipo1} vs {equipo2}\nMarcador: {resultado} ({minutos} minutos)"
-                        client.create_tweet(text=mensaje)
-                        print(f"Tweet enviado: {mensaje}")
+                        print(f"Nuevo partido en seguimiento: {equipo1} vs {equipo2}\nMarcador: {resultado} ({minutos} minutos)")
 
             # Detectar partidos finalizados
             partidos_finalizados = set(estado_previos.keys()) - set(estado_actual.keys())
@@ -369,7 +367,7 @@ def monitorear_y_twittear(driver, client, tw):
 
     except tw.TooManyRequests as e:
         print("Error: Demasiadas requests, pausa tactica de 15 min")
-        time.sleep(2 * 60)  # Pausa de 15 minutos
+        time.sleep(15 * 60)  # Pausa de 15 minutos
 
     except Exception as e:
         print(f"Error al publicar el tweet: {e}")

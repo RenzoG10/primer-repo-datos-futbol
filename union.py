@@ -12,7 +12,7 @@ driver, url, html, soup, grupos = selenium(fecha)
 
 ligas_y_partidos = buscar_partido(grupos)
 
-partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
+#partidosenvivo, partidosnojugados, partidosfinalizados = filtrado_partidos_vivo_nojugados_finalizados(ligas_y_partidos, paisbuscadoarreglado)
 
 # las credenciales para que se asocie la account, utilizo el .env porque es mas seguro a la hora de subir a repositorios
 
