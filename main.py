@@ -16,4 +16,5 @@ def main():
     partidos(dia, mes, anio, uservivo, partidosenvivo, partidosnojugados, partidosfinalizados, driver)
 
 # Ejecutar la función principal
-main()
+if __name__ == "__main__":
+    main()

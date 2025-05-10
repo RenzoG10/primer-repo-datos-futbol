@@ -299,7 +299,7 @@ def monitorear_y_twittear(driver, client, tw, grupos, paisbuscadoarreglado):
                 titulo_div = grupo.find('div', class_="css-170egrx-GroupTitle effkplk0")
                 titulo_liga = titulo_div.text.strip() if titulo_div else "Liga no encontrada"
 
-                if paisbuscadoarreglado in titulo_liga:
+                if paisbuscadoarreglado in titulo_liga or paisbuscadoarreglado == "Todos" or paisbuscadoarreglado == "Todo":
 
                     partidos = grupo.find_all('a', class_="css-s4hjf6-MatchWrapper e1ek4pst2")
 
